@@ -1,10 +1,9 @@
+module Parse ( ekitaiOpts ) where
+
 import System.Console.GetOpt
 import System.Environment
-import System.Exit
 import Data.Maybe
 import Data.Either
-
-data Flag 
 
 data Options = Options
     { optHelp       :: Bool
@@ -26,13 +25,10 @@ options =
         "enables color"
     ]
 
-ekitaiOpts :: [String] -> Either String (Options, String)
+ekitaiOpts :: [String] -> IO (Options, String)
 ekitaiOpts argv =
     case getOpt RequireOrder options argv of
-        (o, n, []) -> undefined
-        (_, _, err) -> Left "invalid"
-
-main = do
-    argv <- getArgs
-    return 0
+        (o, [n], []) -> return (foldl (flip id) defaultOptions o, n)
+        (o, _, [])   -> ioError $ userError $ "must supply input file"
+        (_, _, errs)  -> ioError $ userError $ (concat errs)
 
