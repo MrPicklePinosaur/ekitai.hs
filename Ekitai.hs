@@ -1,6 +1,7 @@
 import System.Environment
 
 import Parse
+import Sim
 
 main = do
     argv <- getArgs
