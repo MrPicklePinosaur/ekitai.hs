@@ -1,32 +1,46 @@
-module Sim ( initSimSpace, testSim, physStep, validDirects ) where
+module Sim ( initSimSpace, testSim, physStep ) where
 
 import           Data.Vector ((!), (//))
 import qualified Data.Vector as V
 
 -- Simulation simSpace simW simH
-data Simulation = Simulation (V.Vector ChunkData) Int Int deriving (Show)
+data Simulation = Simulation
+    { simSpace          :: V.Vector ChunkData
+    , simW              :: Int
+    , simH              :: Int
+    } deriving (Show)
 
 data ChunkType = Empty
     | Water 
     | Wall deriving (Show)
 
-data ChunkData = ChunkData ChunkType deriving (Show)
+data ChunkData = ChunkData 
+    { chunkType         :: ChunkType
+    } deriving (Show)
 
 -- vec accessors
-simGet (Simulation s w _) x y = s ! (y*w+x)
-simSet (Simulation s w h) c x y = Simulation (s // [(y*w+x,c)]) w h
+simGet Simulation{simSpace=s,simW=w} x y = s ! (y*w+x)
+simSet sim@Simulation{simSpace=s,simW=w,simH=h} c x y = sim { simSpace = (s // [(y*w+x,c)]) }
 
-initSimSpace x y = Simulation (V.replicate (y*x) (ChunkData Empty)) x y
+initSimSpace x y = Simulation
+    { simSpace = V.replicate (y*x) ChunkData { chunkType=Empty }
+    , simW = x
+    , simH = y
+    }
 
 testSim = simSet (initSimSpace 10 10) (ChunkData Water) 5 0
 
-physStep sim@(Simulation _ w h) = _physStep [(x, y) | x <- [0..w-1], y <- [0..h-1]] (initSimSpace w h) sim
-_physStep grid acc sim@(Simulation s w h) =
+physStep sim@Simulation{simW=w,simH=h} = _physStep [(x, y) | x <- [0..w-1], y <- [0..h-1]] (initSimSpace w h) sim
+_physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} =
     if null grid then acc
     else _physStep (tail grid) next sim
     where x = fst $ head grid
           y = snd $ head grid
           next = sim
+
+-- takes in list of valid chunks, as well as the sim to modify
+-- updateWaterChunk valid sim =
+    
 
 -- gets chunks around a given chunk that are inside grid
 validDirects x y w h = filter
