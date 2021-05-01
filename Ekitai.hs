@@ -1,5 +1,7 @@
 import System.Environment
 
+import qualified Data.Vector as V
+
 import Parse
 import Sim
 
