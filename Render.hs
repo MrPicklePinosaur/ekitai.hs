@@ -40,6 +40,7 @@ handleEkitaiEvent s e =
         VtyEvent vtye ->
             case vtye of
                 EvKey (KChar 'q') [] -> halt s
+                EvKey (KChar 's') [] -> continue s { ekitaiStateSim = physStep $ ekitaiStateSim s }
                 _ -> continue s
         _ -> continue s 
 

@@ -1,7 +1,8 @@
 module Sim (
     Simulation, simSpace,
     ChunkType, ChunkData, chunkType,
-    initSimSpace, testSim, physStep, updateWaterChunk, validDirects, simToString 
+    initSimSpace, testSim, physStep, validDirects,
+    simToString 
 ) where
 
 import Debug.Trace
@@ -33,10 +34,11 @@ initSimSpace x y = Simulation
     , simH = y
     }
 
-testSim = simSet (initSimSpace 3 3) (ChunkData Water) 1 1
+testSim = let a = simSet (initSimSpace 10 10) (ChunkData Water) 5 5 
+          in simSet a (ChunkData Wall) 5 4
 
 physStep sim@Simulation{simW=w,simH=h} = _physStep [(x, y) | x <- [0..w-1], y <- [0..h-1]] sim sim
--- _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} | trace ("" ++ show acc) False = undefined
+-- _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} | trace ("" ++ show h) False = undefined
 _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} =
     if null grid then acc
     else _physStep (tail grid) next sim
@@ -48,6 +50,7 @@ _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} =
               _ -> acc
 
 -- takes in list of valid chunks, as well as the sim to modify
+-- updateWaterChunk x y valid sim | trace ("x:" ++ show x ++ " y:" ++ show y ++ " " ++ show valid) False = undefined
 updateWaterChunk x y valid sim =
     -- if the chunk below is free, fall straight down
     if elem (0,-1) valid && fromEnum (simGetChunkType sim x (y-1)) == fromEnum Air
@@ -66,14 +69,25 @@ updateWaterChunk x y valid sim =
     else sim
 
 -- gets chunks around a given chunk that are inside grid
+-- validDirects x y w h | trace ("w:"++ show w ++ "h:" ++ show h) False = undefined
 validDirects x y w h = filter
-    (\q -> 0 <= (fst q) && (fst q) < w && (snd q) <= 0 && (snd q) < h)
-    [(a-x,b-y) | a <- [x-1..x+1], b <- [y-1..y+1], not (a==x && b==y)]
+    -- (\q -> 0 <= (fst q)+x && (fst q)+x < w && (snd q)+y <= 0 && (snd q)+y < h)
+    (\q -> 0 <= (fst q)+x && (fst q)+x < w && 0 <= (snd q)+y && (snd q)+y < h)
+    [(a,b) | a <- [-1..1], b <- [-1..1], not (a==0 && b==0)]
 
 simToString :: Simulation -> [Char]
 simToString sim@Simulation{simW=w} = 
     let simStr = V.toList $ V.map chunkToChar $ simSpace sim
     in insert w '\n' simStr
+
+-- maps each chunktype to an ascii character
+chunkToChar :: ChunkData -> Char
+chunkToChar c =
+    case chunkType c of
+        Water -> '~'
+        Air -> '.'
+        Wall -> '#'
+        _ -> '?'
 
 -- from https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
 insert :: Int -> a -> [a] -> [a]
@@ -82,9 +96,3 @@ insert n y xs = countdown n xs where
    countdown _ [] = []
    countdown m (x:xs) = x:countdown (m-1) xs
 
-chunkToChar :: ChunkData -> Char
-chunkToChar c =
-    case chunkType c of
-        Water -> '~'
-        Air -> '.'
-        _ -> '?'
