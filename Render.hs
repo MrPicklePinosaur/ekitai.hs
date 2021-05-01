@@ -6,10 +6,14 @@ import Brick.Types
 import Brick.Widgets.Core
 import Graphics.Vty.Input.Events
 
+import qualified Data.Vector as V
+import Sim
+
 type ResourceName = String
 
-data EkitaiState =
-    EkitaiState deriving (Show)
+data EkitaiState = EkitaiState
+    { ekitaiStateSim           :: Simulation
+    } deriving (Show)
 
 ekitaiApp :: App EkitaiState e ResourceName
 ekitaiApp = App
@@ -21,10 +25,14 @@ ekitaiApp = App
     }
 
 buildInitialState :: IO EkitaiState
-buildInitialState = pure EkitaiState
+buildInitialState =
+    pure EkitaiState
+    { ekitaiStateSim = testSim
+    }
 
 drawEkitai :: EkitaiState -> [Widget ResourceName]
-drawEkitai state = []
+-- drawEkitai state = [ vBox $ drawSim $ ekitaiStateSim state ]
+drawEkitai state = [ vBox [str $ simToString $ ekitaiStateSim state] ]
 
 handleEkitaiEvent :: EkitaiState -> BrickEvent n e -> EventM n (Next EkitaiState)
 handleEkitaiEvent s e =

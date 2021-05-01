@@ -1,4 +1,8 @@
-module Sim ( initSimSpace, testSim, physStep, updateWaterChunk, validDirects ) where
+module Sim (
+    Simulation, simSpace,
+    ChunkType, ChunkData, chunkType,
+    initSimSpace, testSim, physStep, updateWaterChunk, validDirects, simToString 
+) where
 
 import Debug.Trace
 import           Data.Vector ((!), (//))
@@ -66,3 +70,21 @@ validDirects x y w h = filter
     (\q -> 0 <= (fst q) && (fst q) < w && (snd q) <= 0 && (snd q) < h)
     [(a-x,b-y) | a <- [x-1..x+1], b <- [y-1..y+1], not (a==x && b==y)]
 
+simToString :: Simulation -> [Char]
+simToString sim@Simulation{simW=w} = 
+    let simStr = V.toList $ V.map chunkToChar $ simSpace sim
+    in insert w '\n' simStr
+
+-- from https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
+insert :: Int -> a -> [a] -> [a]
+insert n y xs = countdown n xs where
+   countdown 0 xs = y:countdown n xs
+   countdown _ [] = []
+   countdown m (x:xs) = x:countdown (m-1) xs
+
+chunkToChar :: ChunkData -> Char
+chunkToChar c =
+    case chunkType c of
+        Water -> '~'
+        Air -> '.'
+        _ -> '?'
