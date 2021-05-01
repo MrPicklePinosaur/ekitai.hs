@@ -24,10 +24,10 @@ ekitaiApp = App
     , appAttrMap = const $ attrMap mempty []
     }
 
-buildInitialState :: IO EkitaiState
-buildInitialState =
+buildInitialState :: Simulation -> IO EkitaiState
+buildInitialState sim =
     pure EkitaiState
-    { ekitaiStateSim = testSim
+    { ekitaiStateSim = sim
     }
 
 drawEkitai :: EkitaiState -> [Widget ResourceName]

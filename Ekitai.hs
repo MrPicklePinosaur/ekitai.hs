@@ -1,4 +1,5 @@
 import System.Environment
+import System.IO
 
 import qualified Data.Vector as V
 import qualified Brick as B
@@ -10,12 +11,18 @@ import Render
 -- ui :: B.Widget ()
 -- ui = B.str "hello" <+> B.str "World"
 
--- main :: IO ()
 main = do
-    initialState <- buildInitialState
+    argv <- getArgs
+    (opts, fname) <- ekitaiOpts argv
+    handle <- openFile fname ReadMode
+    contents <- hGetContents handle
+    putStr contents
+    hClose handle
+    initialState <- buildInitialState $ stringToSim 10 10 contents
     endState <- B.defaultMain ekitaiApp initialState
     print endState
-    -- argv <- getArgs
-    -- (opts, fname) <- ekitaiOpts argv
+
+-- main :: IO ()
+-- main = do
     -- return 0
 
