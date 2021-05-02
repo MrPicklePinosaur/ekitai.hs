@@ -1,10 +1,15 @@
-module Render ( buildInitialState, ekitaiApp ) where
+module Render ( ekitaiMain ) where
 
 import Brick.AttrMap
 import Brick.Main
 import Brick.Types
 import Brick.Widgets.Core
-import Graphics.Vty.Input.Events
+import Brick.BChan (newBChan, writeBChan)
+import Graphics.Vty
+
+import Control.Monad (forever, void)
+import Control.Monad.IO.Class (liftIO)
+import Control.Concurrent (threadDelay, forkIO)
 
 import qualified Data.Vector as V
 import Sim
@@ -15,7 +20,10 @@ data EkitaiState = EkitaiState
     { ekitaiStateSim           :: Simulation
     } deriving (Show)
 
-ekitaiApp :: App EkitaiState e ResourceName
+-- custom event
+data Tick = Tick
+
+ekitaiApp :: App EkitaiState Tick ResourceName
 ekitaiApp = App
     { appDraw = drawEkitai
     , appChooseCursor = showFirstCursor
@@ -24,6 +32,18 @@ ekitaiApp = App
     , appAttrMap = const $ attrMap mempty []
     }
 
+ekitaiMain sim = do
+    chan <- newBChan 10
+    -- tick game
+    forkIO $ forever $ do
+        writeBChan chan Tick
+        threadDelay 50000
+    let buildVty = Graphics.Vty.mkVty Graphics.Vty.defaultConfig
+    initialVty <- buildVty
+    initialState <- buildInitialState sim
+    endState <- customMain initialVty buildVty (Just chan) ekitaiApp initialState
+    return 0
+
 buildInitialState :: Simulation -> IO EkitaiState
 buildInitialState sim =
     pure EkitaiState
@@ -31,16 +51,10 @@ buildInitialState sim =
     }
 
 drawEkitai :: EkitaiState -> [Widget ResourceName]
--- drawEkitai state = [ vBox $ drawSim $ ekitaiStateSim state ]
 drawEkitai state = [ vBox [str $ simToString $ ekitaiStateSim state] ]
 
-handleEkitaiEvent :: EkitaiState -> BrickEvent n e -> EventM n (Next EkitaiState)
-handleEkitaiEvent s e =
-    case e of
-        VtyEvent vtye ->
-            case vtye of
-                EvKey (KChar 'q') [] -> halt s
-                EvKey (KChar 's') [] -> continue s { ekitaiStateSim = physStep $ ekitaiStateSim s }
-                _ -> continue s
-        _ -> continue s 
+handleEkitaiEvent :: EkitaiState -> BrickEvent n Tick -> EventM n (Next EkitaiState)
+handleEkitaiEvent s (VtyEvent (EvKey (KChar 'q') [])) = halt s
+handleEkitaiEvent s (AppEvent Tick) = continue s { ekitaiStateSim = physStep $ ekitaiStateSim s }
+handleEkitaiEvent s _ = continue s
 

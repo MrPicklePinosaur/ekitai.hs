@@ -2,14 +2,10 @@ import System.Environment
 import System.IO
 
 import qualified Data.Vector as V
-import qualified Brick as B
 
 import Parse
 import Sim
 import Render
-
--- ui :: B.Widget ()
--- ui = B.str "hello" <+> B.str "World"
 
 hGetLines :: Handle -> IO [String]
 hGetLines h = do
@@ -21,18 +17,13 @@ hGetLines h = do
         return (line:lines)
 
 main = do
+    -- handle file stuff
     argv <- getArgs
     (opts, fname) <- ekitaiOpts argv
     handle <- openFile fname ReadMode
     contents <- hGetLines handle
     hClose handle
-    -- putStrLn $ show $ stringToSim contents
-    initialState <- buildInitialState $ stringToSim contents
-    endState <- B.defaultMain ekitaiApp initialState
-    -- print endState
+    -- start brick
+    ekitaiMain $ stringToSim contents
     return 0
-
--- main :: IO ()
--- main = do
-    -- return 0
 
