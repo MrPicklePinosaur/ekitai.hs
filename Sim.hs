@@ -95,14 +95,20 @@ insert n y xs = countdown n xs where
    countdown _ [] = []
    countdown m (x:xs) = x:countdown (m-1) xs
 
-stringToSim :: Int -> Int -> [Char] -> Simulation
-stringToSim w h st =
-    _stringToSim st [(x, y) | x <- [0..w-1], y <- [0..h-1]] (initSimSpace w h)
+-- stringToSim :: [String] -> Simulation
+stringToSim strings =
+    _stringToSim st grid (initSimSpace w h)
+    where stripped = strings
+          w = maximum $ [(length s) | s <- stripped]
+          h = length stripped
+          grid = [(a,b) | a <- [0..(length stripped)-1], b <- [0..(length $ stripped !! a)-1]]
+          st = concat stripped
+
 _stringToSim st grid acc =
     if null grid || null st then acc
     else _stringToSim (tail st) (tail grid) next
-    where x = fst $ head grid
-          y = snd $ head grid
+    where y = fst $ head grid -- not exactly sure why y and x got switched here
+          x = snd $ head grid
           next = simSet acc (charToChunk $ head st) x y
 
 -- maps each chunktype to an ascii character

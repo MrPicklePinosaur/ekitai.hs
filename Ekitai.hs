@@ -11,16 +11,26 @@ import Render
 -- ui :: B.Widget ()
 -- ui = B.str "hello" <+> B.str "World"
 
+hGetLines :: Handle -> IO [String]
+hGetLines h = do
+    line <- hGetLine h
+    isEof <- hIsEOF h
+    if isEof then return [line]
+    else do
+        lines <- hGetLines h
+        return (line:lines)
+
 main = do
     argv <- getArgs
     (opts, fname) <- ekitaiOpts argv
     handle <- openFile fname ReadMode
-    contents <- hGetContents handle
-    putStr contents
+    contents <- hGetLines handle
     hClose handle
-    initialState <- buildInitialState $ stringToSim 10 10 contents
+    -- putStrLn $ show $ stringToSim contents
+    initialState <- buildInitialState $ stringToSim contents
     endState <- B.defaultMain ekitaiApp initialState
     print endState
+    return 0
 
 -- main :: IO ()
 -- main = do
