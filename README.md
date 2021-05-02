@@ -13,13 +13,13 @@ ekitai reads a text file with the desired simulation. samples can be found in th
 ### Deb based
 ### Arch based
 ### Build from Source
-as this project does not use stack or cabal or anything, haskell dependencies will have to be installed separately. if you are on arch, make sure you have the following (find equivalent depending on distro):
+as this project does not use stack or cabal or anything, haskell dependencies will have to be installed separately. this is a bit difficult to document since the packages varies by distro, for arch at least, the following are required
 - ghc
-- ghc-static
 - ghc-libs
+- haskell-vector
 - haskell-brick
 
-and then simply run `make install`.
+and then simply run `sudo make install`.
 
 ## FAQ
 **why ekitai?**
