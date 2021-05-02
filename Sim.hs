@@ -116,7 +116,7 @@ chunkToChar :: ChunkData -> Char
 chunkToChar c =
     case chunkType c of
         Water -> '~'
-        Air -> '.'
+        Air -> ' '
         Wall -> '#'
         _ -> '?'
 

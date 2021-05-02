@@ -29,7 +29,7 @@ main = do
     -- putStrLn $ show $ stringToSim contents
     initialState <- buildInitialState $ stringToSim contents
     endState <- B.defaultMain ekitaiApp initialState
-    print endState
+    -- print endState
     return 0
 
 -- main :: IO ()
