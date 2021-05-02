@@ -8,6 +8,7 @@ module Sim (
 import Debug.Trace
 import           Data.Vector ((!), (//))
 import qualified Data.Vector as V
+import Data.List as L
 
 data Simulation = Simulation
     { simSpace          :: V.Vector ChunkData
@@ -60,7 +61,7 @@ updateScaffolder x y valid sim directs cond exec =
     else updateScaffolder x y valid sim (tail directs) cond exec
 
 updateWaterChunk x y valid sim = updateScaffolder x y valid sim
-    [(0,1),(-1,1),(1,1),(-1,0),(1,0)]
+    ((0,1) : (waterRandom [(-1,1),(1,1),(-1,0),(1,0)] x y))
     (\qd ->
         elem qd valid &&
         fromEnum (simGetChunkType sim ((+) x $ fst qd) ((+) y $ snd qd)) == fromEnum Air
@@ -71,6 +72,11 @@ updateWaterChunk x y valid sim = updateScaffolder x y valid sim
         ((+) x $ fst qd)
         ((+) y $ snd qd)
     )
+
+-- really stupid pure psuedorandom
+waterRandom d x y =
+    let perm = L.permutations d
+    in perm !! ((x^y+x*y^x+x) `mod` (length perm))
 
 updatePumpChunk x y valid sim = updateScaffolder x y valid sim
     [(0,1),(-1,0),(1,0)]
@@ -97,7 +103,7 @@ validDirects x y w h = filter
 simToString :: Simulation -> [Char]
 simToString sim@Simulation{simW=w} = 
     let simStr = V.toList $ V.map chunkToChar $ simSpace sim
-    in insert w '\n' simStr
+    in Sim.insert w '\n' simStr
 
 -- from https://stackoverflow.com/questions/12659562/insert-specific-element-y-after-every-n-elements-in-a-list
 insert :: Int -> a -> [a] -> [a]
