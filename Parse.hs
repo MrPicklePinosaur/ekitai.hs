@@ -8,26 +8,16 @@ import Data.Maybe
 import Data.Either
 
 data Options = Options
-    { optHelp       :: Bool
-    , optColor      :: Bool
-    , optTimeStep   :: Int
+    { optTimeStep   :: Int
     }
 
 defaultOptions = Options
-    { optHelp       = False
-    , optColor      = False
-    , optTimeStep   = 50000
+    { optTimeStep   = 50000
     }
 
 options :: [OptDescr (Options -> Options)]
 options =
-    [ Option ['h'] ["help"]
-        (NoArg (\opts -> opts { optHelp = True }))
-        "display's this message"
-    , Option ['c'] ["color", "colour"]
-        (NoArg (\opts -> opts { optColor = True }))
-        "enables color"
-    , Option ['t'] ["timestep"]
+    [ Option ['t'] ["timestep"]
         (ReqArg (\t opts -> opts { optTimeStep = read t :: Int }) "timestep")
         "sets the simulation time step"
     ]

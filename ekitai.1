@@ -1,10 +1,25 @@
-.TH EKITAI 1 2021-04-30
+.TH EKITAI 1 2021-05-02
 .SH NAME
 ekitai \- terminal fluid simulation written in haskell
 .SH SYNOPSIS
 .B ekitai
+[ekitai options] filename
 .SH DESCRIPTION
+ekitai.hs is a terminal fluid simulator written in haskell. it is a submission to RUHacks 2021. the simulation algorithm is quite simple, it's a similar particle based one that games like 'the sandbox' and 'terraria' use.
 .SH OPTIONS
+.TP
+\fB\-t\fR <\fITIMESTEP\fP>, \fB\-\-timestep=\fR\fITIMESTEP\fR
+Changes the physics timestep, default is 50000.
+.SH FILES
+ekitai reads in a file with special characters that represents simulation elements. here is a list of valid characters:
+
+#: wall block, stationary and blocks movement
+
+~: water block
+
+@: pump block, spawns water below it
+
+O: drain block, removes water around it
 .SH AUTHORS
 \fBekitai\fP was written by Daniel Liu
 .SH REPORTING BUGS
