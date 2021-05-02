@@ -2,9 +2,10 @@ HC=ghc
 DHC=ghci
 HFLAGS=-dynamic -threaded
 PREFIX=/usr
+SAMPLEPREFIX=$(PREFIX)/share
 MANPREFIX=$(PREFIX)/share/man
 
-.PHONY: ekitai clean test
+.PHONY: ekitai clean test install uninstall
 
 ekitai: Ekitai.hs
 	$(HC) $(HFLAGS) --make $< && \
@@ -22,8 +23,11 @@ install: ekitai
 	chmod 775 $(DESTDIR)$(PREFIX)/bin/ekitai
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	cp -f ekitai.1 $(DESTDIR)$(MANPREFIX)/man1
+	mkdir -p $(DESTDIR)$(SAMPLEPREFIX)/ekitai
+	cp -r samples $(DESTDIR)$(SAMPLEPREFIX)/ekitai
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/ekitai \
-		$(DESTDIR)$(MANPREFIX)/man1/ekitai.1
+	rm -rf $(DESTDIR)$(PREFIX)/bin/ekitai \
+		$(DESTDIR)$(MANPREFIX)/man1/ekitai.1 \
+		$(DESTDIR)$(SAMPLEPREFIX)/ekitai
 
