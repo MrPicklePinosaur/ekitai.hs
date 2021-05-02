@@ -52,55 +52,42 @@ _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} =
               Pump -> updatePumpChunk x y valid acc
               Drain -> updateDrainChunk x y valid acc
               _ -> acc
-          -- spawn = simSet next (ChunkData Water) 5 0
 
--- takes in list of valid chunks, as well as the sim to modify
--- updateWaterChunk x y valid sim | trace ("x:" ++ show x ++ " y:" ++ show y ++ " " ++ show valid) False = undefined
-updateWaterChunk x y valid sim =
-    -- if the chunk below is free, fall straight down
-    if elem (0,1) valid && fromEnum (simGetChunkType sim x (y+1)) == fromEnum Air
-        then
-            let moved = simSet sim ChunkData { chunkType=Air } x y
-            in simSet moved ChunkData { chunkType=Water } x (y+1)
-    else if elem (-1,1) valid && fromEnum (simGetChunkType sim (x-1) (y+1)) == fromEnum Air
-        then
-            let moved = simSet sim ChunkData { chunkType=Air } x y
-            in simSet moved ChunkData { chunkType=Water } (x-1) (y+1)
-    else if elem (1,1) valid && fromEnum (simGetChunkType sim (x+1) (y+1)) == fromEnum Air
-        then
-            let moved = simSet sim ChunkData { chunkType=Air } x y
-            in simSet moved ChunkData { chunkType=Water } (x+1) (y+1)
-    else if elem (-1,0) valid && fromEnum (simGetChunkType sim (x-1) y) == fromEnum Air
-        then
-            let moved = simSet sim ChunkData { chunkType=Air } x y
-            in simSet moved ChunkData { chunkType=Water } (x-1) y
-    else if elem (1,0) valid && fromEnum (simGetChunkType sim (x+1) y) == fromEnum Air
-        then
-            let moved = simSet sim ChunkData { chunkType=Air } x y
-            in simSet moved ChunkData { chunkType=Water } (x+1) y
-    -- stay put
-    else sim
+-- template for update functions
+updateScaffolder x y valid sim directs cond exec =
+    if null directs then sim
+    else if cond (head directs) then exec (head directs)
+    else updateScaffolder x y valid sim (tail directs) cond exec
 
-updatePumpChunk x y valid sim =
-    if elem (0,1) valid && fromEnum (simGetChunkType sim x (y+1)) == fromEnum Air
-        then simSet sim ChunkData { chunkType=Water } x (y+1)
-    else if elem (-1,0) valid && fromEnum (simGetChunkType sim (x-1) y) == fromEnum Air
-        then simSet sim ChunkData { chunkType=Water } (x-1) y
-    else if elem (1,0) valid && fromEnum (simGetChunkType sim (x+1) y) == fromEnum Air
-        then simSet sim ChunkData { chunkType=Water } (x+1) y
-    else sim
+updateWaterChunk x y valid sim = updateScaffolder x y valid sim
+    [(0,1),(-1,1),(1,1),(-1,0),(1,0)]
+    (\qd ->
+        elem qd valid &&
+        fromEnum (simGetChunkType sim ((+) x $ fst qd) ((+) y $ snd qd)) == fromEnum Air
+    )
+    (\qd -> simSet
+        (simSet sim ChunkData { chunkType=Air } x y)
+        ChunkData { chunkType=Water }
+        ((+) x $ fst qd)
+        ((+) y $ snd qd)
+    )
 
-updateDrainChunk x y valid sim =
-    if elem (0,1) valid && fromEnum (simGetChunkType sim x (y+1)) == fromEnum Water
-        then simSet sim ChunkData { chunkType=Air } x (y+1)
-    else if elem (0,-1) valid && fromEnum (simGetChunkType sim x (y-1)) == fromEnum Water
-        then simSet sim ChunkData { chunkType=Air } x (y-1)
-    else if elem (1,0) valid && fromEnum (simGetChunkType sim (x+1) y) == fromEnum Water
-        then simSet sim ChunkData { chunkType=Air } (x+1) y
-    else if elem (-1,0) valid && fromEnum (simGetChunkType sim (x-1) y) == fromEnum Water
-        then simSet sim ChunkData { chunkType=Air } (x-1) y
-    else sim
+updatePumpChunk x y valid sim = updateScaffolder x y valid sim
+    [(0,1),(-1,0),(1,0)]
+    (\qd ->
+        elem qd valid &&
+        fromEnum (simGetChunkType sim ((+) x $ fst qd) ((+) y $ snd qd)) == fromEnum Air
+    )
+    (\qd -> simSet sim ChunkData { chunkType=Water } ((+) x $ fst qd) ((+) y $ snd qd))
 
+updateDrainChunk x y valid sim = updateScaffolder x y valid sim
+    [(0,1),(0,-1),(-1,0),(1,0)]
+    (\qd ->
+        elem qd valid &&
+        fromEnum (simGetChunkType sim ((+) x $ fst qd) ((+) y $ snd qd)) == fromEnum Water
+    )
+    (\qd -> simSet sim ChunkData { chunkType=Air } ((+) x $ fst qd) ((+) y $ snd qd))
+    
 -- gets chunks around a given chunk that are inside grid
 -- validDirects x y w h | trace ("w:"++ show w ++ "h:" ++ show h) False = undefined
 validDirects x y w h = filter

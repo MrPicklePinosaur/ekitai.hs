@@ -7,15 +7,6 @@ import Parse
 import Sim
 import Render
 
-hGetLines :: Handle -> IO [String]
-hGetLines h = do
-    line <- hGetLine h
-    isEof <- hIsEOF h
-    if isEof then return [line]
-    else do
-        lines <- hGetLines h
-        return (line:lines)
-
 main = do
     -- handle file stuff
     argv <- getArgs

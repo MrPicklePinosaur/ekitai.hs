@@ -1,8 +1,9 @@
-module Parse ( ekitaiOpts, optTimeStep ) where
+module Parse ( ekitaiOpts, optTimeStep, hGetLines ) where
 
 import System.Console.GetOpt
 import System.Environment
 import System.Exit
+import System.IO
 import Data.Maybe
 import Data.Either
 
@@ -38,10 +39,13 @@ ekitaiOpts argv =
         (o, _, [])   -> ioError $ userError $ "missing input file"
         (_, _, errs) -> ioError $ userError $ concat errs 
 
--- ++ usageInfo header options
---         where header = "Usage: ekitai [OPTIONS...] simfile"
+-- reads in file by lines
+hGetLines :: Handle -> IO [String]
+hGetLines h = do
+    line <- hGetLine h
+    isEof <- hIsEOF h
+    if isEof then return [line]
+    else do
+        lines <- hGetLines h
+        return (line:lines)
 
-        -- (o, _, [])   -> do
-        --     opts <- (foldl (flip id) defaultOptions o)
-        --     if optHelp then userError $ concat usageInfo "Usage: ekitai [OPTIONS...] simfile" options
-        --     else ioError $ userError $ "missing input file"
