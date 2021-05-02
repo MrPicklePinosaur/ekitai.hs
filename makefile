@@ -6,10 +6,11 @@ HFLAGS=-dynamic -threaded
 .PHONY: ekitai clean test
 
 ekitai: Ekitai.hs
-	$(HC) $(HFLAGS) --make $<
+	$(HC) $(HFLAGS) --make $< && \
+		mv Ekitai ekitai
 
 test: Ekitai.hs
 	$(DHC) $<
 
 clean:
-	rm Ekitai *.o *.hi
+	rm ekitai *.o *.hi

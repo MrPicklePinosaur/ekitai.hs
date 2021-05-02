@@ -24,6 +24,6 @@ main = do
     contents <- hGetLines handle
     hClose handle
     -- start brick
-    ekitaiMain $ stringToSim contents
+    ekitaiMain (stringToSim contents) (optTimeStep opts)
     return 0
 

@@ -17,7 +17,9 @@ data Simulation = Simulation
 
 data ChunkType = Air
     | Water 
-    | Wall deriving (Show, Enum)
+    | Wall
+    | Pump
+    | Drain deriving (Show, Enum)
 
 data ChunkData = ChunkData 
     { chunkType         :: ChunkType
@@ -47,6 +49,8 @@ _physStep grid acc sim@Simulation{simSpace=s,simW=w,simH=h} =
           valid = validDirects x y w h
           next = case simGetChunkType sim x y of
               Water -> updateWaterChunk x y valid acc
+              Pump -> updatePumpChunk x y valid acc
+              Drain -> updateDrainChunk x y valid acc
               _ -> acc
           -- spawn = simSet next (ChunkData Water) 5 0
 
@@ -75,6 +79,26 @@ updateWaterChunk x y valid sim =
             let moved = simSet sim ChunkData { chunkType=Air } x y
             in simSet moved ChunkData { chunkType=Water } (x+1) y
     -- stay put
+    else sim
+
+updatePumpChunk x y valid sim =
+    if elem (0,1) valid && fromEnum (simGetChunkType sim x (y+1)) == fromEnum Air
+        then simSet sim ChunkData { chunkType=Water } x (y+1)
+    else if elem (-1,0) valid && fromEnum (simGetChunkType sim (x-1) y) == fromEnum Air
+        then simSet sim ChunkData { chunkType=Water } (x-1) y
+    else if elem (1,0) valid && fromEnum (simGetChunkType sim (x+1) y) == fromEnum Air
+        then simSet sim ChunkData { chunkType=Water } (x+1) y
+    else sim
+
+updateDrainChunk x y valid sim =
+    if elem (0,1) valid && fromEnum (simGetChunkType sim x (y+1)) == fromEnum Water
+        then simSet sim ChunkData { chunkType=Air } x (y+1)
+    else if elem (0,-1) valid && fromEnum (simGetChunkType sim x (y-1)) == fromEnum Water
+        then simSet sim ChunkData { chunkType=Air } x (y-1)
+    else if elem (1,0) valid && fromEnum (simGetChunkType sim (x+1) y) == fromEnum Water
+        then simSet sim ChunkData { chunkType=Air } (x+1) y
+    else if elem (-1,0) valid && fromEnum (simGetChunkType sim (x-1) y) == fromEnum Water
+        then simSet sim ChunkData { chunkType=Air } (x-1) y
     else sim
 
 -- gets chunks around a given chunk that are inside grid
@@ -118,6 +142,8 @@ chunkToChar c =
         Water -> '~'
         Air -> ' '
         Wall -> '#'
+        Pump -> '@'
+        Drain -> 'O'
         _ -> '?'
 
 -- this is redundant, fix this somehow
@@ -126,5 +152,7 @@ charToChunk c =
     ChunkData { chunkType=ctype }
     where ctype = if c=='~' then Water
                   else if c=='#' then Wall
+                  else if c=='@' then Pump
+                  else if c=='O' then Drain
                   else Air
 

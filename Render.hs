@@ -32,12 +32,12 @@ ekitaiApp = App
     , appAttrMap = const $ attrMap mempty []
     }
 
-ekitaiMain sim = do
+ekitaiMain sim timestep = do
     chan <- newBChan 10
     -- tick game
     forkIO $ forever $ do
         writeBChan chan Tick
-        threadDelay 50000
+        threadDelay timestep
     let buildVty = Graphics.Vty.mkVty Graphics.Vty.defaultConfig
     initialVty <- buildVty
     initialState <- buildInitialState sim
